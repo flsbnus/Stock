@@ -1,4 +1,10 @@
 import pandas as pd
+import html5lib
+from bs4 import BeautifulSoup as bs
+import requests
+
+headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
+
 
 code_df = pd.read_html('C:\\Users\\user\\Downloads\\stockdata.xls', header=0)[0]
 
@@ -14,33 +20,52 @@ code_df = code_df[['회사명', '종목코드','대표자명','업종','상장�
 code_df = code_df.rename(columns={'회사명': 'name', '종목코드': 'code','대표자명':'CEO'})
 print(code_df.head())
 
+def f():
+    respose='avcdfls'
 
 # 종목 이름을 입력하면 종목에 해당하는 코드를 불러와
 # 네이버 금융(http://finance.naver.com)에 넣어줌
 def get_url(item_name, code_df):
-    code = code_df.query("name=='{}'".format(item_name))['code'].to_string(index=False)
+    code1 = code_df.query("name=='{}'".format(item_name))['code'].to_string(index=False)
+    code = code1.lstrip() #공백제거
 
     url = 'http://finance.naver.com/item/sise_day.nhn?code={code}'.format(code=code)
+    headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
 
+    response = requests.get(url, headers=headers)
     print("요청 URL = {}".format(url))
-    return url
+    return url,response
 
 
-# 신라젠의 일자데이터 url 가져오기
-item_name = '신라젠'
-url = get_url(item_name, code_df)
+# KEC의 일자데이터 url 가져오기
+item_name = 'KEC'
+url,response = get_url(item_name, code_df)
+
+
+
+
+
+html = bs(response.text, "lxml")
+
+html_table = html.select("table")
+
+len(html_table)
+
+# html에서 찾은 table 태그를 pandas 로 읽어옵니다.
+
+table = pd.read_html(str(html_table))
+
+#c=table[0].dropna()
 
 # 일자 데이터를 담을 df라는 DataFrame 정의
 df = pd.DataFrame()
 
-# 1페이지에서 20페이지의 데이터만 가져오기
-for page in range(1, 21):
-    pg_url = '{url}&page={page}'.format(url=url, page=page)
-    df = df.append(pd.read_html(pg_url, header=0)[0], ignore_index=True)
+for page in range(1,21):
+    df=df.append(table[0],ignore_index=True)
 
-# df.dropna()를 이용해 결측값 있는 행 제거
-df = df.dropna()
+df=df.dropna()
 
-# 상위 5개 데이터 확인하기
-df.head()
+
+print(df)
+
 
