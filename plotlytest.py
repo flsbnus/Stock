@@ -3,6 +3,12 @@ import html5lib
 from bs4 import BeautifulSoup as bs
 import requests
 
+import plotly.offline as pyo
+import plotly.graph_objs as go
+
+
+
+
 headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
 
 
@@ -20,8 +26,7 @@ code_df = code_df[['회사명', '종목코드','업종','상장일']]
 code_df = code_df.rename(columns={'회사명': 'name', '종목코드': 'code','대표자명':'CEO'})
 print(code_df.head())
 
-def f():
-    respose='avcdfls'
+
 
 # 종목 이름을 입력하면 종목에 해당하는 코드를 불러와
 # 네이버 금융(http://finance.naver.com)에 넣어줌
@@ -60,12 +65,39 @@ table = pd.read_html(str(html_table))
 # 일자 데이터를 담을 df라는 DataFrame 정의
 df = pd.DataFrame()
 
-for page in range(1,21):
-    df=df.append(table[0],ignore_index=True)
+
+
+df=df.append(table[0],ignore_index=True)
 
 df=df.dropna()
 
 
 print(df)
+
+#한글로 컬럼을 바꿈
+df=df.rename(columns={'날짜':'date','종가':'close','전일비':'diff',
+                      '시가':'open','고가':'high','저가':'low','거래량':'volume'})
+df[['close', 'diff', 'open', 'high', 'low', 'volume']] \
+    = df[['close', 'diff', 'open', 'high', 'low', 'volume']].astype(int)
+# 컬럼명 'date'의 타입을 date로 바꿔줌
+df['date'] = pd.to_datetime(df['date'])
+# 일자(date)를 기준으로 오름차순 정렬
+df = df.sort_values(by=['date'], ascending=True)
+
+
+
+
+
+
+
+
+
+#그래프그리기
+
+trace1=go.Scatter(x=df.date,y=df.close,name=item_name)
+data=[trace1]
+layout=go.Layout(title=item_name+' 주가')
+fig=go.Figure(data=data,layout=layout)
+pyo.iplot(fig)
 
 
