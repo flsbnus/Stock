@@ -53,7 +53,6 @@ url,response = get_url(item_name, code_df)
 html = bs(response.text, "lxml")
 
 html_table = html.select("table")
-
 len(html_table)
 
 # html에서 찾은 table 태그를 pandas 로 읽어옵니다.
@@ -66,13 +65,16 @@ table = pd.read_html(str(html_table))
 df = pd.DataFrame()
 
 
+for page in range(1,21):
+    pg_url='{url}&page={page}'.format(url=url,page=page)
+    print(pg_url)
+    df=df.append(table[0],ignore_index=True)
 
-df=df.append(table[0],ignore_index=True)
 
 df=df.dropna()
 
 
-print(df)
+print(df.날짜.tolist())
 
 #한글로 컬럼을 바꿈
 df=df.rename(columns={'날짜':'date','종가':'close','전일비':'diff',
