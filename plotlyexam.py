@@ -65,9 +65,9 @@ print(type(table))
 # 일자 데이터를 담을 df라는 DataFrame 정의
 df = pd.DataFrame()
 
-for page in range(1,2):
-    pg_url='{url}&page={page}'.format(url=url,page=page)
-    df=df.append(table[0],ignore_index=True)
+page=1
+pg_url='{url}&page={page}'.format(url=url,page=page)
+df=df.append(table[0],ignore_index=True)
 
 
 
